@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mental Baseline Tester</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      /* Dark gradient background */
+      background: linear-gradient(135deg, #1F2630 0%, #2C384C 100%);
+      font-family: "Segoe UI", Roboto, sans-serif;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .container {
+      background-color: rgba(46, 58, 77, 0.9);
+      width: 90%;
+      max-width: 600px;
+      margin: auto;
+      text-align: center;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      padding: 2em 2em 3em;
+    }
+
+    h1 {
+      margin-bottom: 1em;
+      font-size: 2em;
+    }
+
+    label {
+      display: inline-block;
+      margin: 0.5em 0;
+      font-size: 1.15em;
+    }
+
+    .input-row {
+      margin-bottom: 1em;
+    }
+
+    input[type="text"] {
+      width: 120px;
+      font-size: 1.2em;
+      padding: 0.5em;
+      border-radius: 5px;
+      border: 1px solid #495b76;
+      text-align: center;
+      background-color: #2d3a4b;
+      color: #fff;
+      margin-left: 0.5em;
+      transition: border-color 0.2s ease;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #8ca0c3;
+    }
+
+    /* Radio groups stacked for clarity */
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin: 0.75em auto;
+      width: fit-content;
+    }
+
+    .radio-group label {
+      margin: 0.25em 0;
+      font-size: 1.1em;
+      cursor: pointer;
+    }
+
+    input[type="radio"] {
+      margin-right: 0.5em;
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+
+    button {
+      font-size: 1.2em;
+      padding: 0.6em 1.2em;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      background-color: #4C5A6F;
+      color: #fff;
+      margin-top: 1em;
+      transition: background-color 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #5c6a7f;
+    }
+
+    #timerDisplay {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 1.2em;
+      background-color: rgba(46, 58, 77, 0.9);
+      padding: 0.5em 1em;
+      border-radius: 5px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 100vw;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .modal {
+      background-color: rgba(46, 58, 77, 0.95);
+      padding: 2em;
+      border-radius: 10px;
+      text-align: center;
+      max-width: 90%;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .modal p {
+      margin-bottom: 1.5em;
+      font-size: 1.2em;
+    }
+
+    .modal button {
+      margin: 0.5em;
+      font-size: 1.1em;
+    }
+
+    #problemText {
+      margin-bottom: 1em;
+      font-size: 1.8em;
+      font-weight: 500;
+    }
+
+    #answerInput {
+      width: 140px;
+      font-size: 1.4em;
+      margin: 0.5em;
+      border: 1px solid #495b76;
+      background-color: #2d3a4b;
+      color: #fff;
+      transition: border-color 0.2s ease;
+    }
+    #answerInput:focus {
+      outline: none;
+      border-color: #8ca0c3;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Settings Screen -->
+  <div id="settingsScreen" class="container">
+    <h1>Mental Baseline Tester</h1>
+    <div class="input-row">
+      <label>Number of Digits:
+        <input type="text" id="numDigits" value="2">
+      </label>
+    </div>
+    <div class="input-row">
+      <label>Number of Seconds:
+        <input type="text" id="numSeconds" value="60">
+      </label>
+    </div>
+    <div class="radio-group">
+      <label>
+        <input type="radio" name="operation" value="addition" checked> Addition
+      </label>
+      <label>
+        <input type="radio" name="operation" value="multiplication"> Multiplication
+      </label>
+    </div>
+    <div class="radio-group">
+      <label>
+        <input type="radio" name="showTimer" value="off" checked> Timer Off
+      </label>
+      <label>
+        <input type="radio" name="showTimer" value="on"> Timer On
+      </label>
+    </div>
+    <button id="goButton">Go</button>
+  </div>
+
+  <!-- Quiz Screen -->
+  <div id="quizScreen" class="container hidden">
+    <div id="timerDisplay" class="hidden"></div>
+    <h2 id="problemText"></h2>
+    <input type="text" id="answerInput" autocomplete="off">
+    <button id="submitAnswer">Submit</button>
+  </div>
+
+  <!-- Modal -->
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <p id="resultText"></p>
+      <button id="retryButton">Retry</button>
+      <button id="resetSettingsButton">Reset Settings</button>
+    </div>
+  </div>
+
+  <script>
+    const settingsScreen = document.getElementById('settingsScreen');
+    const quizScreen = document.getElementById('quizScreen');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const goButton = document.getElementById('goButton');
+    const retryButton = document.getElementById('retryButton');
+    const resetSettingsButton = document.getElementById('resetSettingsButton');
+    const numDigitsInput = document.getElementById('numDigits');
+    const numSecondsInput = document.getElementById('numSeconds');
+    const problemText = document.getElementById('problemText');
+    const answerInput = document.getElementById('answerInput');
+    const submitAnswerButton = document.getElementById('submitAnswer');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const resultText = document.getElementById('resultText');
+
+    let numDigits, numSeconds, operation, showTimer;
+    let currentAnswer;
+    let score = 0;
+    let timeLeft;
+    let timerInterval;
+
+    function generateRandomNumber(n) {
+      const min = Math.pow(10, n - 1);
+      const max = Math.pow(10, n) - 1;
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function generateProblem() {
+      const a = generateRandomNumber(numDigits);
+      const b = generateRandomNumber(numDigits);
+      if (operation === 'addition') {
+        currentAnswer = a + b;
+        problemText.textContent = `${a} + ${b} =`;
+      } else {
+        currentAnswer = a * b;
+        problemText.textContent = `${a} * ${b} =`;
+      }
+      answerInput.value = '';
+      answerInput.focus();
+    }
+
+    function startQuiz() {
+      numDigits = parseInt(numDigitsInput.value, 10) || 2;
+      numSeconds = parseInt(numSecondsInput.value, 10) || 60;
+      operation = document.querySelector('input[name="operation"]:checked').value;
+      showTimer = document.querySelector('input[name="showTimer"]:checked').value;
+
+      score = 0;
+      timeLeft = numSeconds;
+
+      settingsScreen.classList.add('hidden');
+      quizScreen.classList.remove('hidden');
+      modalOverlay.classList.add('hidden');
+
+      if (showTimer === 'on') {
+        timerDisplay.textContent = timeLeft;
+        timerDisplay.classList.remove('hidden');
+      } else {
+        timerDisplay.classList.add('hidden');
+      }
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        if (showTimer === 'on') {
+          timerDisplay.textContent = timeLeft;
+        }
+        if (timeLeft <= 0) {
+          endQuiz();
+        }
+      }, 1000);
+
+      generateProblem();
+    }
+
+    function endQuiz() {
+      clearInterval(timerInterval);
+      resultText.innerHTML = `You scored <b>${score}</b> correctly in <b>${numSeconds}</b> seconds`;
+      modalOverlay.classList.remove('hidden');
+    }
+
+    function checkAnswer() {
+      const answer = answerInput.value.trim();
+      if (answer === "" || isNaN(answer)) return;
+      const userAnswer = parseInt(answer, 10);
+      if (userAnswer === currentAnswer) {
+        score++;
+      }
+      if (timeLeft > 0) {
+        generateProblem();
+      }
+    }
+
+    goButton.addEventListener('click', startQuiz);
+    submitAnswerButton.addEventListener('click', checkAnswer);
+    answerInput.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') {
+        checkAnswer();
+      }
+    });
+
+    retryButton.addEventListener('click', () => {
+      modalOverlay.classList.add('hidden');
+      quizScreen.classList.remove('hidden');
+      score = 0;
+      timeLeft = numSeconds;
+      if (showTimer === 'on') {
+        timerDisplay.textContent = timeLeft;
+        timerDisplay.classList.remove('hidden');
+      } else {
+        timerDisplay.classList.add('hidden');
+      }
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        if (showTimer === 'on') {
+          timerDisplay.textContent = timeLeft;
+        }
+        if (timeLeft <= 0) {
+          endQuiz();
+        }
+      }, 1000);
+      generateProblem();
+    });
+
+    resetSettingsButton.addEventListener('click', () => {
+      modalOverlay.classList.add('hidden');
+      quizScreen.classList.add('hidden');
+      settingsScreen.classList.remove('hidden');
+      numDigitsInput.value = "2";
+      numSecondsInput.value = "60";
+      document.querySelector('input[name="operation"][value="addition"]').checked = true;
+      document.querySelector('input[name="showTimer"][value="off"]').checked = true;
+    });
+  </script>
+</body>
+</html>
