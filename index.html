@@ -238,6 +238,7 @@
     let numDigits, numSeconds, operation, showTimer;
     let currentAnswer;
     let score = 0;
+    let attemptedAnswers = 0;
     let timeLeft;
     let timerInterval;
 
@@ -268,6 +269,7 @@
       showTimer = document.querySelector('input[name="showTimer"]:checked').value;
 
       score = 0;
+      attemptedAnswers = 0;
       timeLeft = numSeconds;
 
       settingsScreen.classList.add('hidden');
@@ -296,13 +298,14 @@
 
     function endQuiz() {
       clearInterval(timerInterval);
-      resultText.innerHTML = `You scored <b>${score}</b> correctly in <b>${numSeconds}</b> seconds`;
+      resultText.innerHTML = `You scored <b>${score}</b> correct out of a total of <b>${attemptedAnswers}</b> attempted answers`;
       modalOverlay.classList.remove('hidden');
     }
 
     function checkAnswer() {
       const answer = answerInput.value.trim();
       if (answer === "" || isNaN(answer)) return;
+      attemptedAnswers++;
       const userAnswer = parseInt(answer, 10);
       if (userAnswer === currentAnswer) {
         score++;
@@ -324,6 +327,7 @@
       modalOverlay.classList.add('hidden');
       quizScreen.classList.remove('hidden');
       score = 0;
+      attemptedAnswers = 0;
       timeLeft = numSeconds;
       if (showTimer === 'on') {
         timerDisplay.textContent = timeLeft;
