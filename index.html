@@ -9,9 +9,7 @@
       margin: 0;
       padding: 0;
     }
-
     body {
-      /* Dark gradient background */
       background: linear-gradient(135deg, #1F2630 0%, #2C384C 100%);
       font-family: "Segoe UI", Roboto, sans-serif;
       color: #fff;
@@ -20,11 +18,9 @@
       justify-content: center;
       align-items: center;
     }
-
     .hidden {
       display: none !important;
     }
-
     .container {
       background-color: rgba(46, 58, 77, 0.9);
       width: 90%;
@@ -35,22 +31,18 @@
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
       padding: 2em 2em 3em;
     }
-
     h1 {
       margin-bottom: 1em;
       font-size: 2em;
     }
-
     label {
       display: inline-block;
       margin: 0.5em 0;
       font-size: 1.15em;
     }
-
     .input-row {
       margin-bottom: 1em;
     }
-
     input[type="text"] {
       width: 120px;
       font-size: 1.2em;
@@ -67,8 +59,6 @@
       outline: none;
       border-color: #8ca0c3;
     }
-
-    /* Radio groups stacked for clarity */
     .radio-group {
       display: flex;
       flex-direction: column;
@@ -76,19 +66,16 @@
       margin: 0.75em auto;
       width: fit-content;
     }
-
     .radio-group label {
       margin: 0.25em 0;
       font-size: 1.1em;
       cursor: pointer;
     }
-
     input[type="radio"] {
       margin-right: 0.5em;
       transform: scale(1.2);
       cursor: pointer;
     }
-
     button {
       font-size: 1.2em;
       padding: 0.6em 1.2em;
@@ -100,11 +87,9 @@
       margin-top: 1em;
       transition: background-color 0.2s ease;
     }
-
     button:hover {
       background-color: #5c6a7f;
     }
-
     #timerDisplay {
       position: absolute;
       top: 20px;
@@ -115,7 +100,6 @@
       border-radius: 5px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     }
-
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -128,7 +112,6 @@
       align-items: center;
       z-index: 100;
     }
-
     .modal {
       background-color: rgba(46, 58, 77, 0.95);
       padding: 2em;
@@ -137,23 +120,19 @@
       max-width: 90%;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
     }
-
     .modal p {
       margin-bottom: 1.5em;
       font-size: 1.2em;
     }
-
     .modal button {
       margin: 0.5em;
       font-size: 1.1em;
     }
-
     #problemText {
       margin-bottom: 1em;
       font-size: 1.8em;
       font-weight: 500;
     }
-
     #answerInput {
       width: 140px;
       font-size: 1.4em;
@@ -170,8 +149,6 @@
   </style>
 </head>
 <body>
-
-  <!-- Settings Screen -->
   <div id="settingsScreen" class="container">
     <h1>Mental Baseline Tester</h1>
     <div class="input-row">
@@ -202,16 +179,12 @@
     </div>
     <button id="goButton">Go</button>
   </div>
-
-  <!-- Quiz Screen -->
   <div id="quizScreen" class="container hidden">
     <div id="timerDisplay" class="hidden"></div>
     <h2 id="problemText"></h2>
     <input type="text" id="answerInput" autocomplete="off">
     <button id="submitAnswer">Submit</button>
   </div>
-
-  <!-- Modal -->
   <div id="modalOverlay" class="modal-overlay hidden">
     <div class="modal">
       <p id="resultText"></p>
@@ -219,7 +192,6 @@
       <button id="resetSettingsButton">Reset Settings</button>
     </div>
   </div>
-
   <script>
     const settingsScreen = document.getElementById('settingsScreen');
     const quizScreen = document.getElementById('quizScreen');
@@ -234,23 +206,28 @@
     const submitAnswerButton = document.getElementById('submitAnswer');
     const timerDisplay = document.getElementById('timerDisplay');
     const resultText = document.getElementById('resultText');
-
     let numDigits, numSeconds, operation, showTimer;
     let currentAnswer;
     let score = 0;
     let attemptedAnswers = 0;
     let timeLeft;
     let timerInterval;
-
+    let problemsGenerated = new Set();
     function generateRandomNumber(n) {
       const min = Math.pow(10, n - 1);
       const max = Math.pow(10, n) - 1;
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
-
     function generateProblem() {
-      const a = generateRandomNumber(numDigits);
-      const b = generateRandomNumber(numDigits);
+      let a, b, problemKey, attempts = 0;
+      do {
+        a = generateRandomNumber(numDigits);
+        b = generateRandomNumber(numDigits);
+        problemKey = operation === 'addition' ? `${a}+${b}` : `${a}*${b}`;
+        attempts++;
+        if(attempts > 1000) break;
+      } while (problemsGenerated.has(problemKey));
+      problemsGenerated.add(problemKey);
       if (operation === 'addition') {
         currentAnswer = a + b;
         problemText.textContent = `${a} + ${b} =`;
@@ -261,28 +238,24 @@
       answerInput.value = '';
       answerInput.focus();
     }
-
     function startQuiz() {
       numDigits = parseInt(numDigitsInput.value, 10) || 2;
       numSeconds = parseInt(numSecondsInput.value, 10) || 60;
       operation = document.querySelector('input[name="operation"]:checked').value;
       showTimer = document.querySelector('input[name="showTimer"]:checked').value;
-
       score = 0;
       attemptedAnswers = 0;
       timeLeft = numSeconds;
-
+      problemsGenerated = new Set();
       settingsScreen.classList.add('hidden');
       quizScreen.classList.remove('hidden');
       modalOverlay.classList.add('hidden');
-
       if (showTimer === 'on') {
         timerDisplay.textContent = timeLeft;
         timerDisplay.classList.remove('hidden');
       } else {
         timerDisplay.classList.add('hidden');
       }
-
       timerInterval = setInterval(() => {
         timeLeft--;
         if (showTimer === 'on') {
@@ -292,16 +265,13 @@
           endQuiz();
         }
       }, 1000);
-
       generateProblem();
     }
-
     function endQuiz() {
       clearInterval(timerInterval);
       resultText.innerHTML = `You scored <b>${score}</b> correct out of a total of <b>${attemptedAnswers}</b> attempted answers`;
       modalOverlay.classList.remove('hidden');
     }
-
     function checkAnswer() {
       const answer = answerInput.value.trim();
       if (answer === "" || isNaN(answer)) return;
@@ -314,7 +284,6 @@
         generateProblem();
       }
     }
-
     goButton.addEventListener('click', startQuiz);
     submitAnswerButton.addEventListener('click', checkAnswer);
     answerInput.addEventListener('keyup', (e) => {
@@ -322,13 +291,13 @@
         checkAnswer();
       }
     });
-
     retryButton.addEventListener('click', () => {
       modalOverlay.classList.add('hidden');
       quizScreen.classList.remove('hidden');
       score = 0;
       attemptedAnswers = 0;
       timeLeft = numSeconds;
+      problemsGenerated = new Set();
       if (showTimer === 'on') {
         timerDisplay.textContent = timeLeft;
         timerDisplay.classList.remove('hidden');
@@ -346,7 +315,6 @@
       }, 1000);
       generateProblem();
     });
-
     resetSettingsButton.addEventListener('click', () => {
       modalOverlay.classList.add('hidden');
       quizScreen.classList.add('hidden');
